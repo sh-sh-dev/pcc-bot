@@ -263,7 +263,8 @@ var bot = new BOT({
 
     //Screenshot
     else if (Authorized && text == "screenshot") {
-        screenshot("screenshot.png", function(error, complete) {
+        var ScreenshotFileName = "Screenshot" + Math.floor(Math.random() * (999 - 1 + 1)) + 1 + ".png"
+        screenshot(ScreenshotFileName, function(error, complete) {
             if(error)
                 bot.sendMessage({
                     chat_id:$chat_id,
@@ -275,10 +276,12 @@ var bot = new BOT({
                     caption:"Screenshot ☝️",
                     reply_to_message_id:$message_id,
                     files: {
-                        photo: 'screenshot.png'
+                        photo: ScreenshotFileName
                     }
                 },() => {
-                    fs.unlink("screenshot.png")
+                    fs.unlink(ScreenshotFileName,err => {
+                        if (err) console.log(err)
+                    })
                 })
         });
     }
