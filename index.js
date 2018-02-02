@@ -1,33 +1,50 @@
 const TOKEN = '521688741:AAEBliosAna2GPQ12O2bTkMj_AkChmC-9Q0';
 
-const BOT = require('node-telegram-bot');
 const fs = require('fs');
 const os = require('os');
+const usb = require('usb');
+const http = require("http");
+const cmd = require('node-cmd');
 const in_array = require('in_array');
-const powerOff = require('power-off')
-const sleepMode = require('sleep-mode')
+const powerOff = require('power-off');
+const sleepMode = require('sleep-mode');
+const BOT = require('node-telegram-bot');
 const screenshot = require('desktop-screenshot');
 
 const Admins = [
     342727359
+    ,
+    125899758
 ]
 const MainKeyboard = {
     keyboard : [
         [
-            "Shutdown",
+            "Shutdown"
+            ,
             "Sleep"
+            
+        ]
+        ,
+        [
+            "Run Command"
         ]
         ,
         [
             "Network"
             ,
             "OS"
-            ,
+        ]
+        ,
+        [
             "CPU"
+            //, "Storage"
         ]
         ,
         [
             "Screenshot"
+            ,
+            // "GPS",
+            "USB"
         ]
     ]
 }
@@ -40,7 +57,7 @@ var bot = new BOT({
     $message_id = message.message_id,
     text = message.text.toLowerCase(),
     Authorized = false;
-    
+
     //Authorization
     if (in_array($chat_id,Admins)) Authorized = true;
 
@@ -133,14 +150,33 @@ var bot = new BOT({
           })
     }
 
+    //Run Command
+    else if (Authorized && text == "run command") {
+        bot.sendMessage({
+            chat_id:$chat_id,
+            text:"Send /rcommand <command> to run\nExample : /rcommand php -v"
+        })
+    }
+    else if (!text.indexOf("/rcommand")) {
+        var Command = text.replace("/rcommand","")
+        cmd.get(Command,(err,data,stderr) => {
+            bot.sendMessage({
+                chat_id:$chat_id,
+                reply_to_message_id:$message_id,
+                text:"/rcommand 👇\n" + err || data
+            })
+        })
+    }
+
     //Network
     else if (Authorized && text == "network") {
-        var LocalIP = os.networkInterfaces()['Wi-Fi'][1].address,
-        MAC = os.networkInterfaces()['Wi-Fi'][1].mac;
+        var LocalIP = os.networkInterfaces()['Wi-Fi'][1].address || os.networkInterfaces()['eth0'][1].address,
+        MAC = os.networkInterfaces()['Wi-Fi'][1].mac || os.networkInterfaces()['eth0'][1].mac;
+
         bot.sendMessage({
             chat_id:$chat_id,
             reply_to_message_id:$message_id,
-            text:"Network 👇\nIP : " + LocalIP + "\nMac : " + MAC
+            text:"Network 👇\nLocal IP : " + LocalIP + "\nMac : " + MAC
         })
     }
 
@@ -179,6 +215,52 @@ var bot = new BOT({
         })
     }
 
+    //Storage
+    else if (Authorized && text == "storage") {
+        //This part has a little bug :|
+        function formatBytes(a,b){if(0==a)return"0 Bytes";var c=1024,d=b||2,e=["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"],f=Math.floor(Math.log(a)/Math.log(c));return parseFloat((a/Math.pow(c,f)).toFixed(d))+" "+e[f]}
+        if (os.type() == "Windows_NT") {
+            //Windows
+            const diskspace = require('diskspace');
+
+            var Alphabet = ['A','B','C','D','E','F','G','H','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'],
+            StorageMessage = "",
+            Disk = null;
+
+            for(i=0 ; i < 25 ; i++) {
+                // console.log(i + " : " + Alphabet[i])
+                Disk = Alphabet[i];
+
+                diskspace.check(Disk, function (err, result) {
+
+                    if (result.status == "READY") {
+
+                        result.total = formatBytes(result.total);
+                        result.free = formatBytes(result.free);
+
+                        StorageMessage = Disk + "  👉  Total : " + result.total + " | Free : " + result.free + "\n";
+                        
+                        bot.sendMessage({
+                            chat_id:$chat_id,
+                            text:StorageMessage
+                        })
+
+                    }
+                });
+            }
+
+            // bot.sendMessage({
+            //     chat_id:$chat_id,
+            //     reply_to_message_id:$message_id,
+            //     text:"Storage 👇\n" + StorageMessage
+            // })
+        }
+        else {
+            //Another Operating systems !
+            // https://www.npmjs.com/package/nodejs-disks
+        }
+    }
+
     //Screenshot
     else if (Authorized && text == "screenshot") {
         screenshot("screenshot.png", function(error, complete) {
@@ -200,17 +282,28 @@ var bot = new BOT({
                 })
         });
     }
-    
+
+    //USB
+    else if (Authorized && text == "usb") {
+        var USB = usb.getDeviceList() , U = "";
+
+        for (i=0;i<USB.length;i++) {
+            U += USB[i].deviceDescriptor.bMaxPacketSize0 + "\n"
+        }
+
+        bot.sendMessage({
+            chat_id:$chat_id,
+            text:"USB : \n" + U
+        })
+    }
+
     //Cancel
-    else if (Authorized && text == "cancel") {
+    else if (Authorized && text == "cancel" || Authorized && text == "keyboard") {
         bot.sendMessage({
             chat_id:$chat_id,
             text:"OK !",
             reply_to_message_id:$message_id,
             reply_markup:MainKeyboard
-            // {
-                // remove_keyboard:true
-            // }
         })
     }
 
@@ -233,3 +326,21 @@ var bot = new BOT({
     }
 })
 .start();
+
+usb.on('attach',(device) => {
+    for(i=0;i<Admins.length;i++) {
+        bot.sendMessage({
+            chat_id:Admins[i],
+            text:"A new USB Attached !"
+        })
+    }
+})
+
+usb.on('detach',(device) => {
+    for(i=0;i<Admins.length;i++) {
+        bot.sendMessage({
+            chat_id:Admins[i],
+            text:"A USB Deatached !"
+        })
+    }
+})
