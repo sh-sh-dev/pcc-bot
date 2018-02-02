@@ -171,12 +171,26 @@ var bot = new BOT({
     //Network
     else if (Authorized && text == "network") {
         var LocalIP = os.networkInterfaces()['Wi-Fi'][1].address || os.networkInterfaces()['eth0'][1].address,
-        MAC = os.networkInterfaces()['Wi-Fi'][1].mac || os.networkInterfaces()['eth0'][1].mac;
+        MAC = os.networkInterfaces()['Wi-Fi'][1].mac || os.networkInterfaces()['eth0'][1].mac,
+        IP = "";
 
-        bot.sendMessage({
-            chat_id:$chat_id,
-            reply_to_message_id:$message_id,
-            text:"Network 👇\nLocal IP : " + LocalIP + "\nMac : " + MAC
+        var PubIPFileName = "PubIP" + Math.floor(Math.random() * (999 - 1 + 1)) + 1 + ".txt"
+        var FileStream = fs.createWriteStream(PubIPFileName);
+        var downloadConstructStream = http.get('http://github.piorra.ir/ghp/sh-sh-dev/pcc_bot/', function (res) {
+            res.pipe(FileStream);
+        });
+        FileStream.on('finish', function () {
+            fs.readFile(PubIPFileName, 'utf8', function(err, contents) {
+                IP = contents
+                bot.sendMessage({
+                    chat_id:$chat_id,
+                    reply_to_message_id:$message_id,
+                    text:"Network 👇\nPublic IP : "+ IP + "\nLocal IP : " + LocalIP + "\nMac : " + MAC
+                })
+                fs.unlink(PubIPFileName,err => {
+                    if (err) console.log(err)
+                });
+            }); 
         })
     }
 
