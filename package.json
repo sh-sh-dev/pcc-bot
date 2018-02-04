@@ -1,6 +1,9 @@
 {
   "name": "pcc_bot",
   "version": "1.0.0",
+  "bin": {
+    "pcc_bot": "index.js"
+  },
   "description": "A App for control PC with Telegram Bot",
   "main": "index.js",
   "dependencies": {

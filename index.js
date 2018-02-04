@@ -1,4 +1,7 @@
+#!/usr/bin/env node
 const TOKEN = '521688741:AAEBliosAna2GPQ12O2bTkMj_AkChmC-9Q0';
+
+console.log('Initializing...')
 
 const fs = require('fs');
 const os = require('os');
@@ -53,6 +56,9 @@ var bot = new BOT({
   token: TOKEN
 })
 .on('message', function (message) {
+
+    console.log('Message recived');
+
     var $chat_id = message.chat.id,
     $message_id = message.message_id,
     text = message.text.toLowerCase(),
@@ -342,9 +348,17 @@ var bot = new BOT({
         })
     }
 })
-.start();
+
+console.log('Starting Bot...')
+
+bot.start();
+
+console.log('Bot started.')
 
 usb.on('attach',(device) => {
+
+    console.log('USB Attached')
+
     for(i=0;i<Admins.length;i++) {
         bot.sendMessage({
             chat_id:Admins[i],
@@ -354,10 +368,13 @@ usb.on('attach',(device) => {
 })
 
 usb.on('detach',(device) => {
+
+    console.log('USB Detached')
+
     for(i=0;i<Admins.length;i++) {
         bot.sendMessage({
             chat_id:Admins[i],
-            text:"A USB Deatached !"
+            text:"A USB Detached !"
         })
     }
 })

@@ -7,12 +7,12 @@ Control Your PC (Support Windows , Linux and MacOS) With Telegram Bot !
 
 To get started, **[download latest release](https://github.com/sh-sh-dev/PCC_Bot/releases/latest)**.
 
-Then , Open project folder using Terminal and use ```npm install``` and after this , use ```node index.js```
+Then , Open project folder using Terminal and use ```npm install -g``` and after this , use ```pcc_bot```.
 
 ## Config
-+ Change **TOKEN** ([Line **1**](https://github.com/sh-sh-dev/PCC_Bot/blob/master/index.js#L1))
++ Change **TOKEN** ([Line **2**](https://github.com/sh-sh-dev/PCC_Bot/blob/master/index.js#L2))
 
-+ Add Admin(s) ID in the **Admins** array ([Line 14](https://github.com/sh-sh-dev/PCC_Bot/blob/master/index.js#L14))
++ Add Admin(s) ID in the **Admins** array ([Line 15](https://github.com/sh-sh-dev/PCC_Bot/blob/master/index.js#L15))
 
 ### Feature requests, and bug fixes
 
