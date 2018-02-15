@@ -12,6 +12,7 @@
     "in_array": "^1.1.0",
     "node-cmd": "^3.0.0",
     "node-telegram-bot": "^0.1.9",
+    "node-wifi": "^2.0.4",
     "os": "^0.1.1",
     "power-off": "^1.1.2",
     "sleep-mode": "^1.1.0",

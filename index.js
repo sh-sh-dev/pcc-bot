@@ -8,6 +8,7 @@ const os = require('os');
 const usb = require('usb');
 const http = require("http");
 const cmd = require('node-cmd');
+const wifi = require("node-wifi");
 const in_array = require('in_array');
 const powerOff = require('power-off');
 const sleepMode = require('sleep-mode');
@@ -25,7 +26,6 @@ const MainKeyboard = {
             "Shutdown"
             ,
             "Sleep"
-            
         ]
         ,
         [
@@ -33,21 +33,19 @@ const MainKeyboard = {
         ]
         ,
         [
-            "Network"
+            "WiFi"
             ,
+            "Network"
+        ]
+        ,
+        [
             "OS"
             ,
             "CPU"
         ]
         ,
-        // [
-            // "Storage"
-            // ,"USB"
-        // ]
-        // ,
         [
             "Screenshot"
-            // ,"GPS"
         ]
     ]
 }
@@ -61,8 +59,9 @@ var bot = new BOT({
 
     var $chat_id = message.chat.id,
     $message_id = message.message_id,
-    text = message.text.toLowerCase(),
+    text = message.text,
     Authorized = false;
+    if (text.indexOf("/connect_wifi")) text = text.toLowerCase();
 
     //Authorization
     if (in_array($chat_id,Admins)) Authorized = true;
@@ -160,10 +159,11 @@ var bot = new BOT({
     else if (Authorized && text == "run command") {
         bot.sendMessage({
             chat_id:$chat_id,
-            text:"Send /rcommand <command> to run\nExample : /rcommand php -v"
+            reply_to_message_id:$message_id,
+            text:"Run Command 👇\nSend /rcommand <command> to run\nExample : /rcommand php -v"
         })
     }
-    else if (!text.indexOf("/rcommand")) {
+    else if (Authorized && !text.indexOf("/rcommand")) {
         var Command = text.replace("/rcommand","")
         cmd.get(Command,(err,data,stderr) => {
             var ResultCommand = err !=null ? err : data
@@ -173,6 +173,137 @@ var bot = new BOT({
                 text:"/rcommand 👇\n" + ResultCommand
             })
         })
+    }
+
+    //WiFi
+    else if (Authorized && text == "wifi") {
+        bot.sendMessage({
+            chat_id:$chat_id,
+            reply_to_message_id:$message_id,
+            text:"WiFi 👇\nSelect an option",
+            reply_markup : {
+                keyboard : [
+                    [
+                        "Scan WiFi"
+                    ]
+                    ,
+                    [
+                        "Connect WiFi"
+                    ]
+                    ,
+                    [
+                        "Get Current WiFi"
+                    ]
+                    ,
+                    [
+                        "🏠"
+                    ]
+                ],
+                one_time_keyboard:true
+            }
+        })
+    }
+
+    else if (Authorized && text == "scan wifi") {
+        wifi.init({
+            iface : null
+        });
+        wifi.scan((err, networks) => {
+
+            if (err) bot.sendMessage({
+                chat_id:$chat_id,
+                reply_to_message_id:$message_id,
+                text:`Scan WiFi 👇\nCan't scan WiFi networks :( \n( {err} )`
+            })
+            else {
+                var  Networks = "Scan WiFi 👇\n\n";
+                for(i=0;i<networks.length;i++) {
+                    var SSID = networks[i].ssid != null ? networks[i].ssid : "Hidden Network"
+                    Networks += "*" + SSID + "*" + "  👇\n" + "`Security` 👉 _" + networks[i].security + "_\n`Mac` 👉 _" + networks[i].mac + "_\n`Channel` 👉 _" + networks[i].channel + "_\n`Siganal` 👉 _" + networks[i].signal_level + "_\n\n_*-*-*-*-*_\n\n";
+                }
+                bot.sendMessage({
+                    chat_id:$chat_id,
+                    reply_to_message_id:$message_id,
+                    parse_mode:"Markdown",
+                    text:Networks
+                })
+            }
+        });
+    }
+    else if (Authorized && text == "connect wifi") {
+        bot.sendMessage({
+            chat_id:$chat_id,
+            reply_to_message_id:$message_id,
+            text:"Connect WiFi 👇\nSend /connect_wifi \n<SSID>\n<Password> \nto connect\nExample : /connect_wifi\nPCC\n123456"
+        })
+    }
+    else if (Authorized && !text.indexOf("/connect_wifi")) {
+        wifi.init({
+            iface : null
+        });
+        var Data = text.replace("/connect_wifi","").trim().split("\n"),
+            $SSID = Data[0],
+            $Password = Data[1];
+        wifi.connect({ ssid : $SSID, password : $Password}, err => {
+            if (err) {
+                bot.sendMessage({
+                    chat_id:$chat_id,
+                    reply_to_message_id:$message_id,
+                    text:"Can't Connect :(\n"+err
+                });
+            }
+            else {
+                bot.sendMessage({
+                    chat_id:$chat_id,
+                    reply_to_message_id:$message_id,
+                    text:"Connected :)"
+                })
+            }
+        });
+    }
+    else if (Authorized && text == "get current wifi") {
+        wifi.init({
+            iface : null
+        });
+        wifi.getCurrentConnections( (err, currentConnections) => {
+            if (err) {
+                bot.sendMessage({
+                    chat_id:$chat_id,
+                    reply_to_message_id:$message_id,
+                    text:"Can't get current connection :("
+                })
+            }
+            else {
+                var CC = "Current Connection(s) 👇\n\n";
+                for(i=0;i<currentConnections.length;i++) {
+                    var SSID = currentConnections[i].ssid != null ? currentConnections[i].ssid : "Hidden Network";
+                    CC += "*" + SSID + "*" + "  👇\n" + "`Security` 👉 _" + currentConnections[i].security + "_\n`Mac` 👉 _" + currentConnections[i].mac + "_\n`Channel` 👉 _" + currentConnections[i].channel + "_\n`Siganal` 👉 _" + currentConnections[i].signal_level + "_\n\n_*-*-*-*-*_\n\n";
+                }
+                bot.sendMessage({
+                    chat_id:$chat_id,
+                    reply_to_message_id:$message_id,
+                    parse_mode:"Markdown",
+                    text:CC
+                })
+            }
+            /*
+            // you may have several connections
+            [
+                {
+                    iface: '...', // network interface used for the connection, not available on macOS
+                    ssid: '...',
+                    bssid: '...',
+                    mac: '...', // equals to bssid (for retrocompatibility)
+                    channel: <number>,
+                    frequency: <number>, // in MHz
+                    signal_level: <number>, // in dB
+                    security: '...' //
+                    security_flags: '...' // encryption protocols (format currently depending of the OS)
+                    mode: '...' // network mode like Infra (format currently depending of the OS)
+                }
+            ]
+            */
+        });
     }
 
     //Network
@@ -308,7 +439,7 @@ var bot = new BOT({
     }
 
     //Cancel
-    else if (Authorized && text == "cancel" || Authorized && text == "keyboard") {
+    else if (Authorized && text == "cancel" || Authorized && text == "keyboard" || Authorized && text == "🏠") {
         bot.sendMessage({
             chat_id:$chat_id,
             text:"OK !",
