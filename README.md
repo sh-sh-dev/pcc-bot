@@ -12,7 +12,7 @@ Then , Open project folder using Terminal and use ```npm install -g``` and after
 ## Config
 + Change **TOKEN** ([Line **2**](https://github.com/sh-sh-dev/PCC_Bot/blob/master/index.js#L2))
 
-+ Add Admin(s) ID in the **Admins** array ([Line 17](https://github.com/sh-sh-dev/PCC_Bot/blob/master/index.js#L17))
++ Add Admin(s) ID in the **Admins** array ([Line 18](https://github.com/sh-sh-dev/PCC_Bot/blob/master/index.js#L18))
 
 ### Feature requests, and bug fixes
 
